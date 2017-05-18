@@ -127,7 +127,7 @@ public:
 
   int get_reason() { return reason_; }
 
-  virtual const char * what() {
+  virtual const char * what() const noexcept {
     switch (reason_) {
     case INVALID_ACCESS_TOKEN:
     return "Invalid access token.";
