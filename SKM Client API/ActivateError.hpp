@@ -28,7 +28,7 @@ public:
 
   static ActivateError from_server_response(const char *server_response);
 
-  int get_reason();
+  int get_reason() const noexcept;
 
   virtual const char * what() const noexcept;
 };

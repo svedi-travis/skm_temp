@@ -5,7 +5,7 @@
 namespace serialkeymanager_com {
 	
 int
-ActivateError::get_reason()
+ActivateError::get_reason() const noexcept
 {
   return reason_;
 }
