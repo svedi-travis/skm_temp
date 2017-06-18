@@ -128,8 +128,9 @@ const
   optional<std::string> sig = b64_decode(signature_base64);
   if (!sig) { return 2; }
 		 
-  if (verify(this->rsa, message, *sig) == 1) { return 0; }
-  else                                       { return 3; }
+  // Note, anything but 1 from verify is failure, thus != is important
+  if (verify(this->rsa, message, *sig) != 1) { return 3; }
+  else                                       { return 0; }
 }
 
 } // namespace serialkeymanager_com
