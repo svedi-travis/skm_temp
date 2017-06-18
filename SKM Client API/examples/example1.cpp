@@ -3,6 +3,7 @@
 #include <curl/curl.h>
 
 #include "basic_SKM.hpp"
+#include "Error.hpp"
 #include "RequestHandler_curl.hpp"
 #include "SignatureVerifier_OpenSSL.hpp"
 
@@ -18,6 +19,8 @@ int main()
 {
   curl_global_init(CURL_GLOBAL_SSL);
 
+  skm::Error e = skm::Error::from_reason(1);
+
   SKM skm;
   // Setting up the signature verifier with credentials from "Security Settings"
   // on serialkeymanager.com
@@ -26,7 +29,8 @@ int main()
 
   skm::optional<skm::RawLicenseKey> rawLicenseKey =
     skm.activate
-      ( // SKM Access Token
+      ( e
+      , // SKM Access Token
         "WyI0NjUiLCJBWTBGTlQwZm9WV0FyVnZzMEV1Mm9LOHJmRDZ1SjF0Vk52WTU0VzB2Il0="
       , // Product id
         "3646"

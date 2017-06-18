@@ -22,8 +22,9 @@ private:
   size_t reason_;
 
   Error(size_t reason)
-  : reason_(reason) { }
+  : reason_(reason), source(SOURCE_OK) { }
 public:
+  size_t source;
   static const size_t SOURCE_OK                 = 0;
 
 
@@ -38,7 +39,7 @@ public:
   static const size_t SIGNATURE_CHECK_FAILED    = 8;
   static const size_t JSON_PARSE_FAILED         = 9;
 
-  static Error from_reason(size_t reason);
+  static Error from_reason(size_t reason) { return Error(reason); }
 
   size_t get_reason() const noexcept;
 };

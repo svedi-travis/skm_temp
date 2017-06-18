@@ -10,6 +10,7 @@
 
 #include "api.hpp"
 #include "ActivateError.hpp"
+#include "Error.hpp"
 #include "RawLicenseKey.hpp"
 #include "LicenseKey.hpp"
 #include "LicenseKeyChecker.hpp"
@@ -75,7 +76,8 @@ struct FieldsToReturn {
 template<typename RequestHandler>
 std::string
 make_activate_request
-  ( RequestHandler & request_handler
+  ( Error e
+  , RequestHandler & request_handler
   , std::string const& token
   , std::string const& product_id
   , std::string const& key
@@ -106,7 +108,8 @@ make_activate_request
 template<typename SignatureVerifier>
 optional<RawLicenseKey>
 handle_activate
-  ( SignatureVerifier const& signature_verifier
+  ( Error e
+  , SignatureVerifier const& signature_verifier
   , std::string const& response
   )
 {
@@ -211,7 +214,8 @@ public:
   //   successful or not.
   optional<RawLicenseKey>
   activate
-    ( std::string token
+    ( Error e
+    , std::string token
     , std::string product_id
     , std::string key
     , std::string machine_code
@@ -220,7 +224,8 @@ public:
   {
     std::string response =
       make_activate_request
-        ( this->request_handler
+        ( e
+	, this->request_handler
         , token
         , product_id
         , key
@@ -228,7 +233,7 @@ public:
         , fields_to_return
       );
 
-    return handle_activate(this->signature_verifier, response);
+    return handle_activate(e, this->signature_verifier, response);
   }
 
   // Make an Activate request to the SKM Web API
@@ -279,7 +284,8 @@ public:
   //   A boolean representing if the request was successful or not.
   bool
   deactivate
-    ( std::string token
+    ( Error e
+    , std::string token
     , std::string product_id
     , std::string key
     , std::string machine_code
