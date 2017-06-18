@@ -36,10 +36,10 @@ verify(RSA * rsa, std::string const& message, std::string const& sig)
 
   r = EVP_DigestVerifyFinal(ctx, (unsigned char*)sig.c_str(), sig.size());
 
-  // Void return type
+  // void return type
   EVP_PKEY_free(pkey);
 
-  // Void return type
+  // void return type
   EVP_MD_CTX_destroy(ctx);
 
   return r;
@@ -47,55 +47,58 @@ verify(RSA * rsa, std::string const& message, std::string const& sig)
 
 SignatureVerifier_OpenSSL::SignatureVerifier_OpenSSL()
 {
-  // This should be redesigned. We dont want to throw exceptions
-  // from the constructor, so for now if initialization fails we
-  // just make sure the class never accepts a signature
- 
   this->rsa = RSA_new();
-  //if (this->rsa == NULL) { }
+  if (this->rsa != NULL) {
+    this->rsa->n = BN_new();
+    if (this->rsa->n == NULL) { RSA_free(this->rsa); }
 
-  this->rsa->n = BN_new();
-  if (this->rsa->n == NULL) { RSA_free(this->rsa); }
-
-  this->rsa->e = BN_new();
-  if (this->rsa->e == NULL) { RSA_free(this->rsa); }
+    this->rsa->e = BN_new();
+    if (this->rsa->e == NULL) { RSA_free(this->rsa); }
+  }
 }
 
 SignatureVerifier_OpenSSL::~SignatureVerifier_OpenSSL()
 {
   if (this->rsa != NULL) {
+    // void return type
     RSA_free(this->rsa);
   }
 }
 
-void
+// Return values:
+//   0 - OK
+//   1 - Construction of object failed
+//   2 - Base64 decode failed
+//   3 - BN_bin2bn failed
+int
 SignatureVerifier_OpenSSL::set_modulus_base64(std::string const& modulus_base64)
 {
-  if (this->rsa == NULL) { return; }
+  if (this->rsa == NULL) { return 1; }
 
   optional<std::string> modulus = b64_decode(modulus_base64);
-
-  if (!modulus) {
-    // TODO: This just silently failes
-    return;
-  }
+  if (!modulus) { return 2; }
 
   BN_bin2bn((unsigned char*)modulus->c_str(),  modulus->size(),  this->rsa->n);
+  if (this->rsa->n != NULL) { return 0; }
+  else                      { return 3; }
 }
 
-void
+// Return values:
+//   0 - OK
+//   1 - Construction of object failed
+//   2 - Base64 decode failed
+//   3 - BN_bin2bn failed
+int
 SignatureVerifier_OpenSSL::set_exponent_base64(std::string const& exponent_base64)
 {
-  if (this->rsa == NULL) { return; }
+  if (this->rsa == NULL) { return 1; }
 
   optional<std::string> exponent = b64_decode(exponent_base64);
-
-  if (!exponent) {
-    // TODO: This just silently failes
-    return;
-  }
+  if (!exponent) { return 2; }
 
   BN_bin2bn((unsigned char*)exponent->c_str(), exponent->size(), this->rsa->e);
+  if (this->rsa->e != NULL) { return 0; }
+  else                      { return 3; }
 }
 
 bool
@@ -105,15 +108,28 @@ SignatureVerifier_OpenSSL::verify_message
   )
 const
 {
-  if (this->rsa == NULL) { return false; }
+  return verify_message_new(message, signature_base64) == 0;
+}
+
+// Return values:
+//   0 - OK
+//   1 - Construction of object failed
+//   2 - Base64 decode failed
+//   3 - Invalid signature
+int
+SignatureVerifier_OpenSSL::verify_message_new
+  ( std::string const& message
+  , std::string const& signature_base64
+  )
+const
+{
+  if (this->rsa == NULL) { return 1; }
 
   optional<std::string> sig = b64_decode(signature_base64);
-
-  if (!sig || verify(this->rsa, message, *sig) != 1) {
-    return false;
-  } else {
-    return true;
-  }
+  if (!sig) { return 2; }
+		 
+  if (verify(this->rsa, message, *sig) == 1) { return 0; }
+  else                                       { return 3; }
 }
 
 } // namespace serialkeymanager_com

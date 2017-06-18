@@ -2,8 +2,6 @@
 
 #include <exception>
 
-#include "ActivateError.hpp"
-
 namespace serialkeymanager_com {
 
 class ActivateError : public std::exception {

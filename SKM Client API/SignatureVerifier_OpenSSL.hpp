@@ -22,6 +22,7 @@ public:
 
   // Verifies that the message is correct using the provided signature
   bool verify_message(std::string const& message, std::string const& signature_base64) const;
+  int  verify_message_new(std::string const& message, std::string const& signature_base64) const;
 
 private:
   RSA * rsa;
