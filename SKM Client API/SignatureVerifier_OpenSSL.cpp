@@ -67,10 +67,12 @@ SignatureVerifier_OpenSSL::~SignatureVerifier_OpenSSL()
 
 void
 SignatureVerifier_OpenSSL::set_modulus_base64
-  ( Error e
+  ( Error & e
   , std::string const& modulus_base64
   )
 {
+  if (e) { return; }
+
   if (this->rsa == NULL) { return; }
 
   optional<std::string> modulus = b64_decode(modulus_base64);
@@ -82,10 +84,12 @@ SignatureVerifier_OpenSSL::set_modulus_base64
 
 void
 SignatureVerifier_OpenSSL::set_exponent_base64
-  ( Error e
+  ( Error & e
   , std::string const& exponent_base64
   )
 {
+  if (e) { return; }
+
   if (this->rsa == NULL) { return; }
 
   optional<std::string> exponent = b64_decode(exponent_base64);
@@ -97,12 +101,14 @@ SignatureVerifier_OpenSSL::set_exponent_base64
 
 bool
 SignatureVerifier_OpenSSL::verify_message
-  ( Error e
+  ( Error & e
   , std::string const& message
   , std::string const& signature_base64
   )
 const
 {
+  if (e) { return false; }
+
   if (this->rsa == NULL) { return false; }
 
   optional<std::string> sig = b64_decode(signature_base64);

@@ -41,12 +41,14 @@ public:
   static
   optional<RawLicenseKey>
   make
-    ( Error e
+    ( Error & e
     , SignatureVerifier const& verifier
     , std::string base64_license
     , std::string signature
     )
   {
+    if (e) { return nullopt; }
+
     // FIXME: Error handling here
     optional<std::string> decoded = b64_decode(base64_license);
 

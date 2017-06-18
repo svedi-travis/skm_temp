@@ -27,6 +27,7 @@ public:
   size_t source;
   static const size_t SOURCE_OK                 = 0;
 
+  explicit operator bool() const { return source != SOURCE_OK; }
 
   static const size_t UNKNOWN_SERVER_REPLY      = 0;
   static const size_t INVALID_ACCESS_TOKEN      = 1;

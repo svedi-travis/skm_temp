@@ -76,7 +76,7 @@ struct FieldsToReturn {
 template<typename RequestHandler>
 std::string
 make_activate_request
-  ( Error e
+  ( Error & e
   , RequestHandler & request_handler
   , std::string const& token
   , std::string const& product_id
@@ -108,11 +108,13 @@ make_activate_request
 template<typename SignatureVerifier>
 optional<RawLicenseKey>
 handle_activate
-  ( Error e
+  ( Error & e
   , SignatureVerifier const& signature_verifier
   , std::string const& response
   )
 {
+  if (e) { return nullopt; }
+
   try {
     return make_optional(
 	     handle_activate_exn( experimental_v1()
@@ -217,7 +219,7 @@ public:
   //   successful or not.
   optional<RawLicenseKey>
   activate
-    ( Error e
+    ( Error & e
     , std::string token
     , std::string product_id
     , std::string key
@@ -225,6 +227,8 @@ public:
     , int fields_to_return = 0
     )
   {
+    if (e) { return nullopt; }
+
     std::string response =
       make_activate_request
         ( e
@@ -289,13 +293,15 @@ public:
   //   A boolean representing if the request was successful or not.
   bool
   deactivate
-    ( Error e
+    ( Error & e
     , std::string token
     , std::string product_id
     , std::string key
     , std::string machine_code
     )
   {
+    if (e) { return nullopt; }
+
     std::unordered_map<std::string,std::string> args;
     args["token"] = token;
     args["ProductId"] = product_id;

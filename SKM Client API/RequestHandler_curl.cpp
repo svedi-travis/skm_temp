@@ -24,8 +24,13 @@ RequestHandler_curl::RequestHandler_curl()
 }
 
 std::string
-RequestHandler_curl::make_request(Error e, std::string const& url)
+RequestHandler_curl::make_request
+  ( Error & e
+  , std::string const& url
+  )
 {
+  if (e) { return ""; }
+
   std::string response;
 
   // FIXME: Non-void return
