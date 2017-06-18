@@ -65,72 +65,52 @@ SignatureVerifier_OpenSSL::~SignatureVerifier_OpenSSL()
   }
 }
 
-// Return values:
-//   0 - OK
-//   1 - Construction of object failed
-//   2 - Base64 decode failed
-//   3 - BN_bin2bn failed
-int
-SignatureVerifier_OpenSSL::set_modulus_base64(std::string const& modulus_base64)
+void
+SignatureVerifier_OpenSSL::set_modulus_base64
+  ( Error e
+  , std::string const& modulus_base64
+  )
 {
-  if (this->rsa == NULL) { return 1; }
+  if (this->rsa == NULL) { return; }
 
   optional<std::string> modulus = b64_decode(modulus_base64);
-  if (!modulus) { return 2; }
+  if (!modulus) { return; }
 
+  // FIXME: non-void return type
   BN_bin2bn((unsigned char*)modulus->c_str(),  modulus->size(),  this->rsa->n);
-  if (this->rsa->n != NULL) { return 0; }
-  else                      { return 3; }
 }
 
-// Return values:
-//   0 - OK
-//   1 - Construction of object failed
-//   2 - Base64 decode failed
-//   3 - BN_bin2bn failed
-int
-SignatureVerifier_OpenSSL::set_exponent_base64(std::string const& exponent_base64)
+void
+SignatureVerifier_OpenSSL::set_exponent_base64
+  ( Error e
+  , std::string const& exponent_base64
+  )
 {
-  if (this->rsa == NULL) { return 1; }
+  if (this->rsa == NULL) { return; }
 
   optional<std::string> exponent = b64_decode(exponent_base64);
-  if (!exponent) { return 2; }
+  if (!exponent) { return; }
 
+  // FIXME: non-void return type
   BN_bin2bn((unsigned char*)exponent->c_str(), exponent->size(), this->rsa->e);
-  if (this->rsa->e != NULL) { return 0; }
-  else                      { return 3; }
 }
 
 bool
 SignatureVerifier_OpenSSL::verify_message
-  ( std::string const& message
+  ( Error e
+  , std::string const& message
   , std::string const& signature_base64
   )
 const
 {
-  return verify_message_new(message, signature_base64) == 0;
-}
-
-// Return values:
-//   0 - OK
-//   1 - Construction of object failed
-//   2 - Base64 decode failed
-//   3 - Invalid signature
-int
-SignatureVerifier_OpenSSL::verify_message_new
-  ( std::string const& message
-  , std::string const& signature_base64
-  )
-const
-{
-  if (this->rsa == NULL) { return 1; }
+  if (this->rsa == NULL) { return false; }
 
   optional<std::string> sig = b64_decode(signature_base64);
-  if (!sig) { return 2; }
+  if (!sig) { return false; }
 		 
   // Note, anything but 1 from verify is failure, thus != is important
-  if (verify(this->rsa, message, *sig) != 1) { return 3; }
-  else                                       { return 0; }
+  if (verify(this->rsa, message, *sig) != 1) { return false; }
+  else                                       { return true; }
 }
 
 } // namespace serialkeymanager_com

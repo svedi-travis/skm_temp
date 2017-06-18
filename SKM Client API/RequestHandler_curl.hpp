@@ -1,8 +1,10 @@
 #pragma once
 
-#include <functional>
+#include <string>
 
 #include <curl/curl.h>
+
+#include "Error.hpp"
 
 namespace serialkeymanager_com {
 
@@ -15,11 +17,11 @@ public:
   ~RequestHandler_curl();
 
   std::string
-  make_request(std::string const& url);
+  make_request(Error e, std::string const& url);
 
   template<typename Map>
   std::string
-  build_url(char const* method, Map const& map)
+  build_url(Error e, char const* method, Map const& map)
   {
     char* res;
     std::string s{"https://serialkeymanager.com/api/key/"};

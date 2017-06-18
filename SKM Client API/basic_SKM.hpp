@@ -98,9 +98,9 @@ make_activate_request
   args["SignMethod"] = "1";
   args["v"] = "1";
 
-  std::string url = request_handler.build_url("Activate", args);
+  std::string url = request_handler.build_url(e, "Activate", args);
 
-  return request_handler.make_request(url);
+  return request_handler.make_request(e, url);
 }
 
 // Function for handling a response to an Activate request from
@@ -132,6 +132,8 @@ handle_activate_exn
   , std::string const& response
   )
 {
+  Error e = Error::from_reason(1);
+
   DynamicJsonBuffer jsonBuffer;
   JsonObject & j = jsonBuffer.parseObject(response);
 
@@ -154,7 +156,8 @@ handle_activate_exn
   }
 
   optional<RawLicenseKey> raw = RawLicenseKey::make
-           ( signature_verifier
+           ( e
+	   , signature_verifier
            , j["licenseKey"].as<char const*>()
            , j["signature"].as<char const*>()
 	   );
@@ -258,9 +261,11 @@ public:
     , int fields_to_return = 0
     )
   {
+    Error e = Error::from_reason(1);
     std::string response =
       make_activate_request
-        ( this->request_handler
+        ( e
+	, this->request_handler
         , token
         , product_id
         , key
@@ -298,9 +303,9 @@ public:
     args["MachineCode"] = machine_code;
     args["v"] = "1";
 
-    std::string url = request_handler.build_url("Deactivate", args);
+    std::string url = request_handler.build_url(e, "Deactivate", args);
 
-    std::string response = request_handler.make_request(url);
+    std::string response = request_handler.make_request(e, url);
 
     return handle_deactivate(this->signature_verifier, response);
   }
