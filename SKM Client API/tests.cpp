@@ -72,8 +72,149 @@ TEST(LicenseKeyAttributes, Mandatory) {
     EXPECT_EQ(license_key->get_expires(), 1492905600);
     EXPECT_EQ(license_key->get_period(), 30);
     EXPECT_EQ(license_key->get_block(), false);
+    EXPECT_EQ(license_key->get_trial_activation(), false);
     EXPECT_EQ(license_key->get_sign_date(), 1495226191);
     EXPECT_EQ(license_key->get_expires(), 1492905600);
+}
+
+TEST(LicenseKeyChecker, Mandatory) {
+  std::string license{"{\"ProductId\":3646,\"ID\":4,\"Key\":\"MPDWY-PQAOW-FKSCH-SGAAU\",\"Created\":1490313600,\"Expires\":1492905600,\"Period\":30,\"F1\":false,\"F2\":false,\"F3\":false,\"F4\":false,\"F5\":false,\"F6\":false,\"F7\":false,\"F8\":true,\"Notes\":null,\"Block\":false,\"GlobalId\":31876,\"Customer\":null,\"ActivatedMachines\":[{\"Mid\":\"\",\"IP\":\"155.4.134.27\",\"Time\":1491898918},{\"Mid\":\"lol\",\"IP\":\"155.4.134.27\",\"Time\":1491898995},{\"Mid\":\"289jf2afsf\",\"IP\":\"155.4.134.27\",\"Time\":1491900546},{\"Mid\":\"289jf2afs3\",\"IP\":\"155.4.134.27\",\"Time\":1491900636}],\"TrialActivation\":false,\"MaxNoOfMachines\":1,\"AllowedMachines\":\"\",\"DataObjects\":[],\"SignDate\":1495226191}"};
+    optional<LicenseKey> license_key = LicenseKey::make_unsafe(license);
+
+    ASSERT_TRUE(license_key.has_value()) << "Failed to construct LicenseKey object";
+
+    
+    EXPECT_EQ((bool)license_key->check().has_expired(1492905650), true);
+    EXPECT_EQ((bool)license_key->check().has_expired(1492905550), false);
+
+    EXPECT_EQ((bool)license_key->check().has_not_expired(1492905650), false);
+    EXPECT_EQ((bool)license_key->check().has_not_expired(1492905550), true);
+
+    EXPECT_EQ((bool)license_key->check().has_expired(1492905650).has_not_expired(1492905550), true);
+    EXPECT_EQ((bool)license_key->check().has_expired(1492905550).has_not_expired(1492905550), false);
+    EXPECT_EQ((bool)license_key->check().has_expired(1492905650).has_not_expired(1492905650), false);
+    EXPECT_EQ((bool)license_key->check().has_expired(1492905550).has_not_expired(1492905650), false);
+
+    EXPECT_EQ( (bool)license_key->check().has_not_feature(1).has_not_feature(2)
+		                         .has_not_feature(3).has_not_feature(4)
+		                         .has_not_feature(5).has_not_feature(6)
+		                         .has_not_feature(7).has_feature(8)
+             , true);
+    EXPECT_EQ( (bool)license_key->check().has_not_feature(1).has_not_feature(2)
+		                         .has_not_feature(3).has_not_feature(4)
+		                         .has_not_feature(5).has_not_feature(6)
+		                         .has_not_feature(7).has_not_feature(8)
+             , false);
+    EXPECT_EQ( (bool)license_key->check().has_feature(1).has_not_feature(2)
+		                         .has_not_feature(3).has_feature(4)
+		                         .has_feature(5).has_not_feature(6)
+		                         .has_not_feature(7).has_not_feature(8)
+             , false);
+}
+
+TEST(LicenseKeyOptional, Id) {
+  std::string license1{"{\"ProductId\":3646,\"ID\":4,\"Key\":\"MPDWY-PQAOW-FKSCH-SGAAU\",\"Created\":1490313600,\"Expires\":1492905600,\"Period\":30,\"F1\":false,\"F2\":false,\"F3\":false,\"F4\":false,\"F5\":false,\"F6\":false,\"F7\":false,\"F8\":true,\"Notes\":null,\"Block\":false,\"GlobalId\":31876,\"Customer\":null,\"ActivatedMachines\":[{\"Mid\":\"\",\"IP\":\"155.4.134.27\",\"Time\":1491898918},{\"Mid\":\"lol\",\"IP\":\"155.4.134.27\",\"Time\":1491898995},{\"Mid\":\"289jf2afsf\",\"IP\":\"155.4.134.27\",\"Time\":1491900546},{\"Mid\":\"289jf2afs3\",\"IP\":\"155.4.134.27\",\"Time\":1491900636}],\"TrialActivation\":false,\"MaxNoOfMachines\":1,\"AllowedMachines\":\"\",\"DataObjects\":[],\"SignDate\":1495226191}"};
+    optional<LicenseKey> license_key_1 = LicenseKey::make_unsafe(license1);
+
+  std::string license2{"{\"ProductId\":3646,\"ID\":null,\"Key\":\"MPDWY-PQAOW-FKSCH-SGAAU\",\"Created\":1490313600,\"Expires\":1492905600,\"Period\":30,\"F1\":false,\"F2\":false,\"F3\":false,\"F4\":false,\"F5\":false,\"F6\":false,\"F7\":false,\"F8\":true,\"Notes\":null,\"Block\":false,\"GlobalId\":31876,\"Customer\":null,\"ActivatedMachines\":[{\"Mid\":\"\",\"IP\":\"155.4.134.27\",\"Time\":1491898918},{\"Mid\":\"lol\",\"IP\":\"155.4.134.27\",\"Time\":1491898995},{\"Mid\":\"289jf2afsf\",\"IP\":\"155.4.134.27\",\"Time\":1491900546},{\"Mid\":\"289jf2afs3\",\"IP\":\"155.4.134.27\",\"Time\":1491900636}],\"TrialActivation\":false,\"MaxNoOfMachines\":1,\"AllowedMachines\":\"\",\"DataObjects\":[],\"SignDate\":1495226191}"};
+    optional<LicenseKey> license_key_2 = LicenseKey::make_unsafe(license2);
+
+
+    ASSERT_TRUE(license_key_1.has_value()) << "Failed to construct LicenseKey object";
+    ASSERT_TRUE(license_key_2.has_value()) << "Failed to construct LicenseKey object";
+
+    EXPECT_TRUE(license_key_1->get_id().has_value());
+    EXPECT_FALSE(license_key_2->get_id().has_value());
+}
+
+TEST(LicenseKeyOptional, Key) {
+  std::string license1{"{\"ProductId\":3646,\"ID\":4,\"Key\":\"MPDWY-PQAOW-FKSCH-SGAAU\",\"Created\":1490313600,\"Expires\":1492905600,\"Period\":30,\"F1\":false,\"F2\":false,\"F3\":false,\"F4\":false,\"F5\":false,\"F6\":false,\"F7\":false,\"F8\":true,\"Notes\":null,\"Block\":false,\"GlobalId\":31876,\"Customer\":null,\"ActivatedMachines\":[{\"Mid\":\"\",\"IP\":\"155.4.134.27\",\"Time\":1491898918},{\"Mid\":\"lol\",\"IP\":\"155.4.134.27\",\"Time\":1491898995},{\"Mid\":\"289jf2afsf\",\"IP\":\"155.4.134.27\",\"Time\":1491900546},{\"Mid\":\"289jf2afs3\",\"IP\":\"155.4.134.27\",\"Time\":1491900636}],\"TrialActivation\":false,\"MaxNoOfMachines\":1,\"AllowedMachines\":\"\",\"DataObjects\":[],\"SignDate\":1495226191}"};
+    optional<LicenseKey> license_key_1 = LicenseKey::make_unsafe(license1);
+
+  std::string license2{"{\"ProductId\":3646,\"ID\":null,\"Key\":null,\"Created\":1490313600,\"Expires\":1492905600,\"Period\":30,\"F1\":false,\"F2\":false,\"F3\":false,\"F4\":false,\"F5\":false,\"F6\":false,\"F7\":false,\"F8\":true,\"Notes\":null,\"Block\":false,\"GlobalId\":31876,\"Customer\":null,\"ActivatedMachines\":[{\"Mid\":\"\",\"IP\":\"155.4.134.27\",\"Time\":1491898918},{\"Mid\":\"lol\",\"IP\":\"155.4.134.27\",\"Time\":1491898995},{\"Mid\":\"289jf2afsf\",\"IP\":\"155.4.134.27\",\"Time\":1491900546},{\"Mid\":\"289jf2afs3\",\"IP\":\"155.4.134.27\",\"Time\":1491900636}],\"TrialActivation\":false,\"MaxNoOfMachines\":1,\"AllowedMachines\":\"\",\"DataObjects\":[],\"SignDate\":1495226191}"};
+    optional<LicenseKey> license_key_2 = LicenseKey::make_unsafe(license2);
+
+
+    ASSERT_TRUE(license_key_1.has_value()) << "Failed to construct LicenseKey object";
+    ASSERT_TRUE(license_key_2.has_value()) << "Failed to construct LicenseKey object";
+
+    EXPECT_TRUE(license_key_1->get_key().has_value());
+    EXPECT_FALSE(license_key_2->get_key().has_value());
+}
+
+TEST(LicenseKeyOptional, Notes) {
+  std::string license1{"{\"ProductId\":3646,\"ID\":4,\"Key\":\"MPDWY-PQAOW-FKSCH-SGAAU\",\"Created\":1490313600,\"Expires\":1492905600,\"Period\":30,\"F1\":false,\"F2\":false,\"F3\":false,\"F4\":false,\"F5\":false,\"F6\":false,\"F7\":false,\"F8\":true,\"Notes\":\"my little note\",\"Block\":false,\"GlobalId\":31876,\"Customer\":null,\"ActivatedMachines\":[{\"Mid\":\"\",\"IP\":\"155.4.134.27\",\"Time\":1491898918},{\"Mid\":\"lol\",\"IP\":\"155.4.134.27\",\"Time\":1491898995},{\"Mid\":\"289jf2afsf\",\"IP\":\"155.4.134.27\",\"Time\":1491900546},{\"Mid\":\"289jf2afs3\",\"IP\":\"155.4.134.27\",\"Time\":1491900636}],\"TrialActivation\":false,\"MaxNoOfMachines\":1,\"AllowedMachines\":\"\",\"DataObjects\":[],\"SignDate\":1495226191}"};
+    optional<LicenseKey> license_key_1 = LicenseKey::make_unsafe(license1);
+
+  std::string license2{"{\"ProductId\":3646,\"ID\":null,\"Key\":null,\"Created\":1490313600,\"Expires\":1492905600,\"Period\":30,\"F1\":false,\"F2\":false,\"F3\":false,\"F4\":false,\"F5\":false,\"F6\":false,\"F7\":false,\"F8\":true,\"Notes\":null,\"Block\":false,\"GlobalId\":31876,\"Customer\":null,\"ActivatedMachines\":[{\"Mid\":\"\",\"IP\":\"155.4.134.27\",\"Time\":1491898918},{\"Mid\":\"lol\",\"IP\":\"155.4.134.27\",\"Time\":1491898995},{\"Mid\":\"289jf2afsf\",\"IP\":\"155.4.134.27\",\"Time\":1491900546},{\"Mid\":\"289jf2afs3\",\"IP\":\"155.4.134.27\",\"Time\":1491900636}],\"TrialActivation\":false,\"MaxNoOfMachines\":1,\"AllowedMachines\":\"\",\"DataObjects\":[],\"SignDate\":1495226191}"};
+    optional<LicenseKey> license_key_2 = LicenseKey::make_unsafe(license2);
+
+
+    ASSERT_TRUE(license_key_1.has_value()) << "Failed to construct LicenseKey object";
+    ASSERT_TRUE(license_key_2.has_value()) << "Failed to construct LicenseKey object";
+
+    EXPECT_TRUE(license_key_1->get_notes().has_value());
+    EXPECT_FALSE(license_key_2->get_notes().has_value());
+}
+
+TEST(LicenseKeyOptional, GlobalId) {
+  std::string license1{"{\"ProductId\":3646,\"ID\":4,\"Key\":\"MPDWY-PQAOW-FKSCH-SGAAU\",\"Created\":1490313600,\"Expires\":1492905600,\"Period\":30,\"F1\":false,\"F2\":false,\"F3\":false,\"F4\":false,\"F5\":false,\"F6\":false,\"F7\":false,\"F8\":true,\"Notes\":\"my little note\",\"Block\":false,\"GlobalId\":31876,\"Customer\":null,\"ActivatedMachines\":[{\"Mid\":\"\",\"IP\":\"155.4.134.27\",\"Time\":1491898918},{\"Mid\":\"lol\",\"IP\":\"155.4.134.27\",\"Time\":1491898995},{\"Mid\":\"289jf2afsf\",\"IP\":\"155.4.134.27\",\"Time\":1491900546},{\"Mid\":\"289jf2afs3\",\"IP\":\"155.4.134.27\",\"Time\":1491900636}],\"TrialActivation\":false,\"MaxNoOfMachines\":1,\"AllowedMachines\":\"\",\"DataObjects\":[],\"SignDate\":1495226191}"};
+    optional<LicenseKey> license_key_1 = LicenseKey::make_unsafe(license1);
+
+  std::string license2{"{\"ProductId\":3646,\"ID\":null,\"Key\":null,\"Created\":1490313600,\"Expires\":1492905600,\"Period\":30,\"F1\":false,\"F2\":false,\"F3\":false,\"F4\":false,\"F5\":false,\"F6\":false,\"F7\":false,\"F8\":true,\"Notes\":null,\"Block\":false,\"GlobalId\":null,\"Customer\":null,\"ActivatedMachines\":[{\"Mid\":\"\",\"IP\":\"155.4.134.27\",\"Time\":1491898918},{\"Mid\":\"lol\",\"IP\":\"155.4.134.27\",\"Time\":1491898995},{\"Mid\":\"289jf2afsf\",\"IP\":\"155.4.134.27\",\"Time\":1491900546},{\"Mid\":\"289jf2afs3\",\"IP\":\"155.4.134.27\",\"Time\":1491900636}],\"TrialActivation\":false,\"MaxNoOfMachines\":1,\"AllowedMachines\":\"\",\"DataObjects\":[],\"SignDate\":1495226191}"};
+    optional<LicenseKey> license_key_2 = LicenseKey::make_unsafe(license2);
+
+
+    ASSERT_TRUE(license_key_1.has_value()) << "Failed to construct LicenseKey object";
+    ASSERT_TRUE(license_key_2.has_value()) << "Failed to construct LicenseKey object";
+
+    EXPECT_TRUE(license_key_1->get_global_id().has_value());
+    EXPECT_FALSE(license_key_2->get_global_id().has_value());
+}
+
+TEST(LicenseKeyOptional, MaxNoOfMachines) {
+  std::string license1{"{\"ProductId\":3646,\"ID\":4,\"Key\":\"MPDWY-PQAOW-FKSCH-SGAAU\",\"Created\":1490313600,\"Expires\":1492905600,\"Period\":30,\"F1\":false,\"F2\":false,\"F3\":false,\"F4\":false,\"F5\":false,\"F6\":false,\"F7\":false,\"F8\":true,\"Notes\":\"my little note\",\"Block\":false,\"GlobalId\":31876,\"Customer\":null,\"ActivatedMachines\":[{\"Mid\":\"\",\"IP\":\"155.4.134.27\",\"Time\":1491898918},{\"Mid\":\"lol\",\"IP\":\"155.4.134.27\",\"Time\":1491898995},{\"Mid\":\"289jf2afsf\",\"IP\":\"155.4.134.27\",\"Time\":1491900546},{\"Mid\":\"289jf2afs3\",\"IP\":\"155.4.134.27\",\"Time\":1491900636}],\"TrialActivation\":false,\"MaxNoOfMachines\":1,\"AllowedMachines\":\"\",\"DataObjects\":[],\"SignDate\":1495226191}"};
+    optional<LicenseKey> license_key_1 = LicenseKey::make_unsafe(license1);
+
+  std::string license2{"{\"ProductId\":3646,\"ID\":null,\"Key\":null,\"Created\":1490313600,\"Expires\":1492905600,\"Period\":30,\"F1\":false,\"F2\":false,\"F3\":false,\"F4\":false,\"F5\":false,\"F6\":false,\"F7\":false,\"F8\":true,\"Notes\":null,\"Block\":false,\"GlobalId\":null,\"Customer\":null,\"ActivatedMachines\":[{\"Mid\":\"\",\"IP\":\"155.4.134.27\",\"Time\":1491898918},{\"Mid\":\"lol\",\"IP\":\"155.4.134.27\",\"Time\":1491898995},{\"Mid\":\"289jf2afsf\",\"IP\":\"155.4.134.27\",\"Time\":1491900546},{\"Mid\":\"289jf2afs3\",\"IP\":\"155.4.134.27\",\"Time\":1491900636}],\"TrialActivation\":false,\"MaxNoOfMachines\":null,\"AllowedMachines\":\"\",\"DataObjects\":[],\"SignDate\":1495226191}"};
+    optional<LicenseKey> license_key_2 = LicenseKey::make_unsafe(license2);
+
+
+    ASSERT_TRUE(license_key_1.has_value()) << "Failed to construct LicenseKey object";
+    ASSERT_TRUE(license_key_2.has_value()) << "Failed to construct LicenseKey object";
+
+    EXPECT_TRUE(license_key_1->get_maxnoofmachines().has_value());
+    EXPECT_FALSE(license_key_2->get_maxnoofmachines().has_value());
+}
+
+TEST(LicenseKeyOptional, AllowedMachines) {
+  std::string license1{"{\"ProductId\":3646,\"ID\":4,\"Key\":\"MPDWY-PQAOW-FKSCH-SGAAU\",\"Created\":1490313600,\"Expires\":1492905600,\"Period\":30,\"F1\":false,\"F2\":false,\"F3\":false,\"F4\":false,\"F5\":false,\"F6\":false,\"F7\":false,\"F8\":true,\"Notes\":\"my little note\",\"Block\":false,\"GlobalId\":31876,\"Customer\":null,\"ActivatedMachines\":[{\"Mid\":\"\",\"IP\":\"155.4.134.27\",\"Time\":1491898918},{\"Mid\":\"lol\",\"IP\":\"155.4.134.27\",\"Time\":1491898995},{\"Mid\":\"289jf2afsf\",\"IP\":\"155.4.134.27\",\"Time\":1491900546},{\"Mid\":\"289jf2afs3\",\"IP\":\"155.4.134.27\",\"Time\":1491900636}],\"TrialActivation\":false,\"MaxNoOfMachines\":1,\"AllowedMachines\":\"\",\"DataObjects\":[],\"SignDate\":1495226191}"};
+    optional<LicenseKey> license_key_1 = LicenseKey::make_unsafe(license1);
+
+  std::string license2{"{\"ProductId\":3646,\"ID\":null,\"Key\":null,\"Created\":1490313600,\"Expires\":1492905600,\"Period\":30,\"F1\":false,\"F2\":false,\"F3\":false,\"F4\":false,\"F5\":false,\"F6\":false,\"F7\":false,\"F8\":true,\"Notes\":null,\"Block\":false,\"GlobalId\":null,\"Customer\":null,\"ActivatedMachines\":[{\"Mid\":\"\",\"IP\":\"155.4.134.27\",\"Time\":1491898918},{\"Mid\":\"lol\",\"IP\":\"155.4.134.27\",\"Time\":1491898995},{\"Mid\":\"289jf2afsf\",\"IP\":\"155.4.134.27\",\"Time\":1491900546},{\"Mid\":\"289jf2afs3\",\"IP\":\"155.4.134.27\",\"Time\":1491900636}],\"TrialActivation\":false,\"MaxNoOfMachines\":null,\"AllowedMachines\":null,\"DataObjects\":[],\"SignDate\":1495226191}"};
+    optional<LicenseKey> license_key_2 = LicenseKey::make_unsafe(license2);
+
+
+    ASSERT_TRUE(license_key_1.has_value()) << "Failed to construct LicenseKey object";
+    ASSERT_TRUE(license_key_2.has_value()) << "Failed to construct LicenseKey object";
+
+    EXPECT_TRUE(license_key_1->get_allowed_machines().has_value());
+    EXPECT_FALSE(license_key_2->get_allowed_machines().has_value());
+}
+
+TEST(LicenseKeyOptional, DataObjects) {
+  std::string license1{"{\"ProductId\":3646,\"ID\":4,\"Key\":\"MPDWY-PQAOW-FKSCH-SGAAU\",\"Created\":1490313600,\"Expires\":1492905600,\"Period\":30,\"F1\":false,\"F2\":false,\"F3\":false,\"F4\":false,\"F5\":false,\"F6\":false,\"F7\":false,\"F8\":true,\"Notes\":\"my little note\",\"Block\":false,\"GlobalId\":31876,\"Customer\":null,\"ActivatedMachines\":[{\"Mid\":\"\",\"IP\":\"155.4.134.27\",\"Time\":1491898918},{\"Mid\":\"lol\",\"IP\":\"155.4.134.27\",\"Time\":1491898995},{\"Mid\":\"289jf2afsf\",\"IP\":\"155.4.134.27\",\"Time\":1491900546},{\"Mid\":\"289jf2afs3\",\"IP\":\"155.4.134.27\",\"Time\":1491900636}],\"TrialActivation\":false,\"MaxNoOfMachines\":1,\"AllowedMachines\":\"\",\"DataObjects\":[],\"SignDate\":1495226191}"};
+    optional<LicenseKey> license_key_1 = LicenseKey::make_unsafe(license1);
+
+  std::string license2{"{\"ProductId\":3646,\"ID\":null,\"Key\":null,\"Created\":1490313600,\"Expires\":1492905600,\"Period\":30,\"F1\":false,\"F2\":false,\"F3\":false,\"F4\":false,\"F5\":false,\"F6\":false,\"F7\":false,\"F8\":true,\"Notes\":null,\"Block\":false,\"GlobalId\":null,\"Customer\":null,\"ActivatedMachines\":[{\"Mid\":\"\",\"IP\":\"155.4.134.27\",\"Time\":1491898918},{\"Mid\":\"lol\",\"IP\":\"155.4.134.27\",\"Time\":1491898995},{\"Mid\":\"289jf2afsf\",\"IP\":\"155.4.134.27\",\"Time\":1491900546},{\"Mid\":\"289jf2afs3\",\"IP\":\"155.4.134.27\",\"Time\":1491900636}],\"TrialActivation\":false,\"MaxNoOfMachines\":null,\"AllowedMachines\":null,\"DataObjects\":null,\"SignDate\":1495226191}"};
+    optional<LicenseKey> license_key_2 = LicenseKey::make_unsafe(license2);
+
+
+    ASSERT_TRUE(license_key_1.has_value()) << "Failed to construct LicenseKey object";
+    ASSERT_TRUE(license_key_2.has_value()) << "Failed to construct LicenseKey object";
+
+    EXPECT_TRUE(license_key_1->get_data_objects().has_value());
+    EXPECT_FALSE(license_key_2->get_data_objects().has_value());
 }
 
 TEST(LicenseKeyFeatures, None) {
