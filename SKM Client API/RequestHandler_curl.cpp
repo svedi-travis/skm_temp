@@ -19,7 +19,8 @@ handle_response(char * ptr, size_t size, size_t nmemb, void *userdata)
 
 RequestHandler_curl::RequestHandler_curl()
 {
-  // FIXME: Non-void return
+  // Every other method has to check for error
+  // since this is the constructor
   this->curl = curl_easy_init();
 }
 
@@ -31,24 +32,28 @@ RequestHandler_curl::make_request
 {
   if (e) { return ""; }
 
-  std::string response;
+  if (this->curl == NULL) { e.set(Error::MAKE_REQUEST_CURL_NULL); return ""; }
 
-  // FIXME: Non-void return
-  curl_easy_setopt(this->curl, CURLOPT_URL, url.c_str());
-  // FIXME: Non-void return
-  curl_easy_setopt(this->curl, CURLOPT_WRITEFUNCTION, handle_response);
-  // FIXME: Non-void return
-  curl_easy_setopt(this->curl, CURLOPT_WRITEDATA, (void *)&response);
+  std::string response;
+  CURLcode cc;
+
+  cc = curl_easy_setopt(this->curl, CURLOPT_URL, url.c_str());
+  if (cc != CURL_OK) { e.set(Error::MAKE_REQUEST_SETOPT); return ""; }
+  cc = curl_easy_setopt(this->curl, CURLOPT_WRITEFUNCTION, handle_response);
+  if (cc != CURL_OK) { e.set(Error::MAKE_REQUEST_SETOPT); return ""; }
+  cc = curl_easy_setopt(this->curl, CURLOPT_WRITEDATA, (void *)&response);
+  if (cc != CURL_OK) { e.set(Error::MAKE_REQUEST_SETOPT); return ""; }
 
   // FIXME: Temporary addition since we are doing cryptographic check
   //        in the library aswell.
-  // FIXME: Non-void return
   curl_easy_setopt(this->curl, CURLOPT_SSL_VERIFYPEER, 0);
-  // FIXME: Non-void return
+  if (cc != CURL_OK) { e.set(Error::MAKE_REQUEST_SETOPT); return ""; }
   curl_easy_setopt(this->curl, CURLOPT_SSL_VERIFYHOST, 0);
+  if (cc != CURL_OK) { e.set(Error::MAKE_REQUEST_SETOPT); return ""; }
 
   // FIXME: Non-void return
-  curl_easy_perform(this->curl);
+  cc = curl_easy_perform(this->curl);
+  if (cc != CURL_OK) { e.set(Error::MAKE_REQUEST_PERFORM); return ""; }
 
   return response;
 }

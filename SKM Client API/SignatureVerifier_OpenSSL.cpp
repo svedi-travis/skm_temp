@@ -10,39 +10,40 @@
 
 namespace serialkeymanager_com {
 
-int
-verify(RSA * rsa, std::string const& message, std::string const& sig)
+void
+verify(Error & e, RSA * rsa, std::string const& message, std::string const& sig)
 {
+  if (e) { return; }
+
   int r;
 
-  if (rsa == NULL) { return 0; }
+  if (rsa == NULL) { e.set(Error::VERIFY_RSA_NULL); return; }
 
   EVP_MD_CTX * ctx = EVP_MD_CTX_create();
-  if (ctx == NULL) { return 0; }
+  if (ctx == NULL) { e.set(Error::VERIFY_RSA_CTX_CREATE); return; }
 
   EVP_PKEY * pkey = EVP_PKEY_new();
-  if (pkey == NULL) { return 0; }
+  if (pkey == NULL) { e.set(Error::VERIFY_RSA_PKEY_NEW); return; }
 
   r = EVP_PKEY_set1_RSA(pkey, rsa);
-  if (r != 1) { return 0; }
+  if (r != 1) { e.set(Error::VERIFY_RSA_PKEY_SET); return; }
 
 
 
   r = EVP_DigestVerifyInit(ctx, NULL, EVP_sha256(), NULL, pkey);
-  if (r != 1) { return 0; }
+  if (r != 1) { e.set(Error::VERIFY_EVP_INIT); return; }
 
   r = EVP_DigestVerifyUpdate(ctx, (unsigned char*)message.c_str(), message.size());
-  if (r != 1) { return 0; }
+  if (r != 1) { e.set(Error::VERIFY_EVP_UPDATE); return; }
 
   r = EVP_DigestVerifyFinal(ctx, (unsigned char*)sig.c_str(), sig.size());
+  if (r != 1) { e.set(Error::VERIFY_EVP_FINAL); return; }
 
   // void return type
   EVP_PKEY_free(pkey);
 
   // void return type
   EVP_MD_CTX_destroy(ctx);
-
-  return r;
 }
 
 SignatureVerifier_OpenSSL::SignatureVerifier_OpenSSL()
@@ -73,10 +74,10 @@ SignatureVerifier_OpenSSL::set_modulus_base64
 {
   if (e) { return; }
 
-  if (this->rsa == NULL) { return; }
+  if (this->rsa == NULL) { e.set(Error::SET_MODULUS_RSA_NULL); return; }
 
   optional<std::string> modulus = b64_decode(modulus_base64);
-  if (!modulus) { return; }
+  if (!modulus) { e.set(Error::SET_MODULUS_B64_DECODE_FAILED); return; }
 
   // FIXME: non-void return type
   BN_bin2bn((unsigned char*)modulus->c_str(),  modulus->size(),  this->rsa->n);
@@ -90,16 +91,16 @@ SignatureVerifier_OpenSSL::set_exponent_base64
 {
   if (e) { return; }
 
-  if (this->rsa == NULL) { return; }
+  if (this->rsa == NULL) { e.set(Error::SET_EXPONENT_RSA_NULL); return; }
 
   optional<std::string> exponent = b64_decode(exponent_base64);
-  if (!exponent) { return; }
+  if (!exponent) { e.set(Error::SET_EXPONENT_B64_DECODE_FAILED); return; }
 
   // FIXME: non-void return type
   BN_bin2bn((unsigned char*)exponent->c_str(), exponent->size(), this->rsa->e);
 }
 
-bool
+void
 SignatureVerifier_OpenSSL::verify_message
   ( Error & e
   , std::string const& message
@@ -107,16 +108,14 @@ SignatureVerifier_OpenSSL::verify_message
   )
 const
 {
-  if (e) { return false; }
+  if (e) { return; }
 
-  if (this->rsa == NULL) { return false; }
+  if (this->rsa == NULL) { e.set(Error::VERIFY_MESSAGE_RSA_NULL); return; }
 
   optional<std::string> sig = b64_decode(signature_base64);
-  if (!sig) { return false; }
+  if (!sig) { e.set(Error::VERIFY_MESSAGE_B64_DECODE_FAILED); return; }
 		 
-  // Note, anything but 1 from verify is failure, thus != is important
-  if (verify(this->rsa, message, *sig) != 1) { return false; }
-  else                                       { return true; }
+  verify(e, this->rsa, message, *sig)
 }
 
 } // namespace serialkeymanager_com

@@ -25,10 +25,13 @@ public:
   {
     if (e) { return ""; }
 
+    if (curl == NULL) { e.set(Error::BUILD_URL_CURL_NULL; return ""; }
+
     char* res;
     std::string s{"https://serialkeymanager.com/api/key/"};
 
     res = curl_easy_escape(curl, method, 0);
+    if (res == NULL) { e.set(Error::BUILD_URL_ESCAPE); return ""; }
     s += res;
     curl_free(res);
 
@@ -42,12 +45,14 @@ public:
       }
 
       res = curl_easy_escape(curl, e.first.c_str(), 0);
+      if (res == NULL) { e.set(Error::BUILD_URL_ESCAPE); return ""; }
       s += res;
       curl_free(res);
 
       s += '=';
 
       res = curl_easy_escape(curl, e.second.c_str(), 0);
+      if (res == NULL) { e.set(Error::BUILD_URL_ESCAPE); return ""; }
       s += res;
       curl_free(res);
     }
