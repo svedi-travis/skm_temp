@@ -49,12 +49,8 @@ public:
   {
     if (e) { return nullopt; }
 
-    // FIXME: Error handling here
     optional<std::string> decoded = b64_decode(base64_license);
-
-    if (!decoded) {
-      return nullopt;
-    }
+    if (!decoded) { e.set(Error::RAWLICENSEKEY_MAKE_B64DECODE); return nullopt; }
 
     if (verifier.verify_message(e, *decoded, signature)) {
       return make_optional(

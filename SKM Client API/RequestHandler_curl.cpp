@@ -51,7 +51,6 @@ RequestHandler_curl::make_request
   curl_easy_setopt(this->curl, CURLOPT_SSL_VERIFYHOST, 0);
   if (cc != CURL_OK) { e.set(Error::MAKE_REQUEST_SETOPT); return ""; }
 
-  // FIXME: Non-void return
   cc = curl_easy_perform(this->curl);
   if (cc != CURL_OK) { e.set(Error::MAKE_REQUEST_PERFORM); return ""; }
 
