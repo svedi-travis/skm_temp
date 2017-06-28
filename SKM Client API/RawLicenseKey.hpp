@@ -52,7 +52,8 @@ public:
     optional<std::string> decoded = b64_decode(base64_license);
     if (!decoded) { e.set(Error::RAWLICENSEKEY_MAKE_B64DECODE); return nullopt; }
 
-    if (verifier.verify_message(e, *decoded, signature)) {
+    verifier.verify_message(e, *decoded, signature);
+    if (!e) {
       return make_optional(
         RawLicenseKey
           ( std::move(base64_license)

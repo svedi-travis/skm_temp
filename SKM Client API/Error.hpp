@@ -21,8 +21,7 @@ class Error {
 private:
   size_t reason_;
 public:
-  Error(size_t reason)
-  : reason_(reason) { }
+  Error(): reason_(NO_ERROR) { }
 
   static constexpr size_t NO_ERROR = 0;
 
