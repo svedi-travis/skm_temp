@@ -134,7 +134,7 @@ handle_activate_exn
   , std::string const& response
   )
 {
-  Error e = Error::from_reason(1);
+  Error e;
 
   DynamicJsonBuffer jsonBuffer;
   JsonObject & j = jsonBuffer.parseObject(response);
@@ -265,7 +265,7 @@ public:
     , int fields_to_return = 0
     )
   {
-    Error e = Error::from_reason(1);
+    Error e;
     std::string response =
       make_activate_request
         ( e

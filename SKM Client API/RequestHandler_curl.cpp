@@ -38,21 +38,21 @@ RequestHandler_curl::make_request
   CURLcode cc;
 
   cc = curl_easy_setopt(this->curl, CURLOPT_URL, url.c_str());
-  if (cc != CURL_OK) { e.set(Error::MAKE_REQUEST_SETOPT); return ""; }
+  if (cc != CURLE_OK) { e.set(Error::MAKE_REQUEST_SETOPT); return ""; }
   cc = curl_easy_setopt(this->curl, CURLOPT_WRITEFUNCTION, handle_response);
-  if (cc != CURL_OK) { e.set(Error::MAKE_REQUEST_SETOPT); return ""; }
+  if (cc != CURLE_OK) { e.set(Error::MAKE_REQUEST_SETOPT); return ""; }
   cc = curl_easy_setopt(this->curl, CURLOPT_WRITEDATA, (void *)&response);
-  if (cc != CURL_OK) { e.set(Error::MAKE_REQUEST_SETOPT); return ""; }
+  if (cc != CURLE_OK) { e.set(Error::MAKE_REQUEST_SETOPT); return ""; }
 
   // FIXME: Temporary addition since we are doing cryptographic check
   //        in the library aswell.
   curl_easy_setopt(this->curl, CURLOPT_SSL_VERIFYPEER, 0);
-  if (cc != CURL_OK) { e.set(Error::MAKE_REQUEST_SETOPT); return ""; }
+  if (cc != CURLE_OK) { e.set(Error::MAKE_REQUEST_SETOPT); return ""; }
   curl_easy_setopt(this->curl, CURLOPT_SSL_VERIFYHOST, 0);
-  if (cc != CURL_OK) { e.set(Error::MAKE_REQUEST_SETOPT); return ""; }
+  if (cc != CURLE_OK) { e.set(Error::MAKE_REQUEST_SETOPT); return ""; }
 
   cc = curl_easy_perform(this->curl);
-  if (cc != CURL_OK) { e.set(Error::MAKE_REQUEST_PERFORM); return ""; }
+  if (cc != CURLE_OK) { e.set(Error::MAKE_REQUEST_PERFORM); return ""; }
 
   return response;
 }

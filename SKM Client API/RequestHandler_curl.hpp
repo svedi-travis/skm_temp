@@ -25,7 +25,7 @@ public:
   {
     if (e) { return ""; }
 
-    if (curl == NULL) { e.set(Error::BUILD_URL_CURL_NULL; return ""; }
+    if (curl == NULL) { e.set(Error::BUILD_URL_CURL_NULL); return ""; }
 
     char* res;
     std::string s{"https://serialkeymanager.com/api/key/"};

@@ -23,7 +23,7 @@ public:
   void set_exponent_base64(Error & e, std::string const& exponent_base64);
 
   // Verifies that the message is correct using the provided signature
-  bool verify_message(Error & e, std::string const& message, std::string const& signature_base64) const;
+  void verify_message(Error & e, std::string const& message, std::string const& signature_base64) const;
 
 private:
   RSA * rsa;

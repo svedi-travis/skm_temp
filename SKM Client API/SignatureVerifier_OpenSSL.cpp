@@ -115,7 +115,7 @@ const
   optional<std::string> sig = b64_decode(signature_base64);
   if (!sig) { e.set(Error::VERIFY_MESSAGE_B64_DECODE_FAILED); return; }
 		 
-  verify(e, this->rsa, message, *sig)
+  verify(e, this->rsa, message, *sig);
 }
 
 } // namespace serialkeymanager_com
